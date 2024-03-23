@@ -1,1 +1,83 @@
-
+#The SQL queries for the given tasks were as follows:
+--- TABLES_COLUMN
+select * from dbo.Orders$;
+-- BASIC QUERIES
+select Count(*) AS total_orders,
+count (Distinct [Customer ID]) As total_unique_customers, 
+count (Distinct [Product Category]) As Total_Product_Category
+from dbo.Orders$;
+-- SALES METRICS
+SELECT [Product Category],
+ROUND (SUM (Sales), 2)AS Total_Sales,
+ROUND (AVG (Discount), 4)AS Average_Discount,
+ROUND (SUM (Profit), 2)AS Total_Profit,
+ROUND (AVG (Profit), 2) AS Average_Profit
+FROM dbo.Orders$
+GROUP BY [Product Category]
+ORDER BY [Total_Sales]DESC;
+-- CUSTOMER ANALYSIS
+SELECT Top 10 [Customer ID], [Customer Name],
+SUM (Sales) AS total_sales
+FROM dbo.Orders$
+GROUP BY [Customer ID], [Customer Name]
+ORDER BY total_sales DESC;
+SELECT [Customer Segment],
+ROUND (SUM (Sales), 2) AS Total_Sales,
+ROUND (AVG (Sales), 2) AS [Average_Sales]
+FROM dbo.Orders$
+GROUP BY [Customer Segment]
+ORDER BY Total_Sales;
+-- TEMPORAL ANALYSIS
+SELECT DATEPART(MONTH, [Order Date]) AS Month_Number,
+DATENAME(MONTH, [Order Date]) AS Order_Month,
+SUM(Sales) AS Monthly_Sales
+FROM dbo.Orders$
+GROUP BY DATEPART(MONTH, [Order Date]), DATENAME(MONTH, [Order Date])
+ORDER BY Monthly_Sales DESC
+-- PRODUCT PERFORMANCE
+SELECT Top 5 [Product Sub-Category],
+SUM ([Quantity ordered new]) AS total_Quantity_sold 
+FROM dbo.Orders$
+GROUP BY [Product Sub-Category]
+ORDER BY total_Quantity_sold DESC;
+--Profit margin
+SELECT [Product Sub-Category],
+SUM ([Quantity ordered new]) AS total_Quantity,
+ROUND ((SUM ([Profit]))/(SUM (Sales))*100, 2) AS Profit_Margin
+FROM dbo.Orders$
+GROUP BY [Product Sub-Category]
+ORDER BY Profit_Margin DESC;
+-- DISCOUNT ANALYSIS
+SELECT [Product Category],
+ROUND(AVG (Discount), 4) AS Average_discount,
+ROUND (AVG (Sales), 2) AS Average_Sales,
+ROUND(AVG (Profit), 2) AS Average_profit
+FROM dbo.Orders$
+GROUP BY [Product Category]
+ORDER BY Average_discount DESC;
+-- Average Discount each product
+SELECT [Product Sub-Category],
+ROUND(AVG (Discount), 4) AS Average_Discount
+FROM dbo.Orders$
+GROUP BY [Product Sub-Category]
+ORDER BY Average_Discount DESC;
+--CUSTOMER SEGMENTATION
+WITH  Customer_Purchases AS
+(SELECT [Customer ID],
+SUM (Sales) AS Total_Purchases
+FROM dbo.Orders$
+GROUP BY [Customer ID])
+SELECT CASE WHEN Total_Purchases > 1000
+THEN 'HIGHER PURCHASERS'
+WHEN Total_Purchases <= 1000 AND Total_Purchases > 500
+THEN 'MEDIUM PURCHASERS'
+ELSE 'LOW PURCHASERS'
+END AS Customer_Segment,
+COUNT (*) AS segment_count
+FROM Customer_Purchases
+GROUP BY CASE WHEN Total_Purchases > 1000
+THEN 'HIGHER PURCHASERS'
+WHEN Total_Purchases <= 1000 AND Total_Purchases > 500
+THEN 'MEDIUM PURCHASERS'
+ELSE 'LOW PURCHASERS'
+END
